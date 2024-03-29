@@ -2,8 +2,8 @@
 name: Build jsonnet
 on:
   push:
-    # tags: ['release/*']
-    branches: ['main']
+    tags: ['release/*']
+    branches: ['release']
 
 jobs:
   run:
