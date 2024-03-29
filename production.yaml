@@ -4,6 +4,72 @@ kind: Deployment
 metadata:
   annotations: {}
   labels:
+    name: frontend
+  name: frontend
+spec:
+  minReadySeconds: 30
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        name: frontend
+    spec:
+      containers:
+      - args: []
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        - name: NUMBER_REPLICAS
+          value: "3"
+        image: gcr.io/google-samples/gb-frontend:v4
+        imagePullPolicy: IfNotPresent
+        name: gb-frontend
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        stdin: false
+        tty: false
+        volumeMounts: []
+      imagePullSecrets: []
+      initContainers: []
+      terminationGracePeriodSeconds: 30
+      volumes: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {}
+  labels:
+    name: frontend
+  name: frontend
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  selector:
+    name: frontend
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  labels:
     name: redis-master
   name: redis-master
 spec:
@@ -123,70 +189,4 @@ spec:
     targetPort: 6379
   selector:
     name: redis-slave
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  annotations: {}
-  labels:
-    name: frontend
-  name: frontend
-spec:
-  minReadySeconds: 30
-  replicas: 3
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      name: frontend
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
-  template:
-    metadata:
-      annotations: {}
-      labels:
-        name: frontend
-    spec:
-      containers:
-      - args: []
-        env:
-        - name: GET_HOSTS_FROM
-          value: dns
-        - name: NUMBER_REPLICAS
-          value: "3"
-        image: gcr.io/google-samples/gb-frontend:v4
-        imagePullPolicy: IfNotPresent
-        name: gb-frontend
-        ports:
-        - containerPort: 80
-          name: http
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        stdin: false
-        tty: false
-        volumeMounts: []
-      imagePullSecrets: []
-      initContainers: []
-      terminationGracePeriodSeconds: 30
-      volumes: []
----
-apiVersion: v1
-kind: Service
-metadata:
-  annotations: {}
-  labels:
-    name: frontend
-  name: frontend
-spec:
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
-  selector:
-    name: frontend
   type: ClusterIP
